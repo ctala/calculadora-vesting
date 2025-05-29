@@ -1,0 +1,1184 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Equity para Fundadores de Startups | calculadoraequity.com</title>
+    <meta name="description"
+        content="Calcula y estima la división de equity (participación accionaria) entre fundadores de startups y el ESOP. Considera industria, geografía, experiencia y contribuciones. Herramienta esencial para emprendedores.">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Poppins:wght@400;600&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #27282E;
+            /* Negro (Carbón) */
+            color: #FFFFFF;
+            /* Blanco */
+            line-height: 1.6;
+        }
+
+        .title,
+        .subtitle,
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6 {
+            font-family: 'Bebas Neue', cursive;
+            color: #FF6600;
+            /* Naranja Primario */
+        }
+
+        .main-title {
+            font-size: 3.5rem;
+            letter-spacing: 1px;
+        }
+
+        .section-title {
+            font-size: 2.5rem;
+            border-bottom: 2px solid #FF6600;
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
+            color: #FFA600;
+            /* Naranja Claro */
+        }
+
+        .box {
+            background-color: #3a3b40;
+            /* Gris oscuro para cajas */
+            border-radius: 8px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+            border: 1px solid #7F756F;
+            /* Borde Gris Medio */
+        }
+
+        .label {
+            color: #FFFFFF;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 600;
+        }
+
+        .input,
+        .select select,
+        .textarea {
+            background-color: #27282E;
+            /* Negro (Carbón) para inputs */
+            border-color: #7F756F;
+            /* Gris Medio */
+            color: #FFFFFF;
+            border-radius: 4px;
+        }
+
+        .input::placeholder,
+        .textarea::placeholder {
+            color: #a0a0a0;
+            /* Gris claro para placeholder */
+        }
+
+        .input:focus,
+        .select select:focus,
+        .textarea:focus,
+        .input:active,
+        .select select:active,
+        .textarea:active {
+            border-color: #FF6600;
+            /* Naranja Primario */
+            box-shadow: 0 0 0 0.125em rgba(255, 102, 0, 0.25);
+        }
+
+        .select::after {
+            /* Flecha del select */
+            border-color: #FF6600;
+            /* Naranja Primario */
+        }
+
+        .button.is-primary {
+            /* Botón Calcular Equity */
+            background-color: #FF6600;
+            /* Naranja Primario */
+            border: 2px solid #FFA600;
+            /* Borde Naranja Claro */
+            color: #FFFFFF;
+            /* Texto Blanco */
+            font-family: 'Bebas Neue', cursive;
+            font-size: 1.8rem;
+            /* Más grande */
+            letter-spacing: 1px;
+            padding: 1rem 2.5rem;
+            /* Más padding */
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(255, 102, 0, 0.4);
+            border-radius: 6px;
+        }
+
+        .button.is-primary:hover {
+            background-color: #FFA600;
+            /* Naranja Claro */
+            border-color: #FF6600;
+            box-shadow: 0 6px 12px rgba(255, 166, 0, 0.5);
+            transform: translateY(-2px);
+        }
+
+        .button.is-warning {
+            /* Botón de modal */
+            background-color: #FFA600;
+            /* Naranja Claro */
+            color: #27282E;
+            /* Negro (Carbón) para contraste */
+        }
+
+        .button.is-warning:hover {
+            background-color: #FF6600;
+            /* Naranja Primario */
+        }
+
+        .founder-card {
+            background-color: #27282E;
+            border: 1px solid #7F756F;
+            border-radius: 6px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .founder-card .title {
+            color: #FFA600;
+            font-size: 1.8rem;
+        }
+
+        .contribution-tooltip {
+            position: relative;
+            cursor: help;
+            display: inline-block;
+        }
+
+        .contribution-tooltip .tooltiptext {
+            visibility: hidden;
+            width: 220px;
+            background-color: #111827;
+            /* Más oscuro para tooltip */
+            color: #FFFFFF;
+            text-align: center;
+            border-radius: 6px;
+            padding: 8px;
+            position: absolute;
+            z-index: 10;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -110px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.85rem;
+            border: 1px solid #FFA600;
+        }
+
+        .contribution-tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .notification.is-info {
+            /* Para sugerencia de ESOP */
+            background-color: #3a3b40;
+            color: #FFFFFF;
+            border-left: 5px solid #FFA600;
+        }
+
+        .modal-card-head,
+        .modal-card-foot {
+            background-color: #3a3b40;
+            border-bottom: 1px solid #7F756F;
+            border-top: 1px solid #7F756F;
+        }
+
+        .modal-card-title {
+            font-family: 'Bebas Neue', cursive;
+            color: #FF6600;
+        }
+
+        .modal-card-body {
+            background-color: #27282E;
+            color: #FFFFFF;
+        }
+
+        #totalWeights {
+            font-weight: bold;
+        }
+
+        .hero-body {
+            padding-top: 2rem;
+            padding-bottom: 2rem;
+        }
+
+        .container {
+            max-width: 960px;
+        }
+
+        /* Estilos para Resumen Ejecutivo */
+        .summary-section .title.is-4,
+        .summary-section h5 {
+            /* Títulos de subsecciones en resumen */
+            font-family: 'Bebas Neue', cursive;
+            /* Asegurar Bebas Neue */
+            color: #FFA600 !important;
+            /* Naranja Claro, con !important para asegurar override si es necesario */
+            font-size: 1.5rem;
+            /* Ajustar tamaño si es necesario */
+            margin-bottom: 0.5rem;
+        }
+
+        .summary-section ul {
+            list-style-position: inside;
+            padding-left: 0.5em;
+            color: #e0e0e0;
+        }
+
+        .summary-section li,
+        .summary-section p {
+            margin-bottom: 0.5em;
+            color: #e0e0e0;
+            /* Texto general del resumen */
+        }
+
+        .summary-section strong {
+            color: #FFFFFF;
+            /* Destacar strong con blanco */
+        }
+
+        .summary-section .is-size-7 {
+            /* Para notas aclaratorias */
+            color: #b0b0b0;
+        }
+
+
+        .result-explanation h5 {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 600;
+            color: #FFA600;
+            margin-top: 0.75em;
+            margin-bottom: 0.25em;
+            font-size: 1.1em;
+        }
+
+        .result-explanation ul {
+            list-style-position: inside;
+            padding-left: 0.5em;
+            color: #e0e0e0;
+        }
+
+        .result-explanation li {
+            margin-bottom: 0.3em;
+        }
+
+
+        .footer-link {
+            color: #FF6600;
+            text-decoration: underline;
+        }
+
+        .footer-link:hover {
+            color: #FFA600;
+        }
+
+        #equityChartContainer {
+            max-width: 400px;
+            margin: 2rem auto;
+            padding: 1rem;
+            background-color: #27282E;
+            /* Fondo para el gráfico */
+            border-radius: 8px;
+        }
+
+        #ctaSection {
+            /* Mejoras al CTA */
+            background: linear-gradient(135deg, #FF6600 0%, #FFA600 100%);
+            color: #FFFFFF;
+            padding: 2.5rem;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+            margin-bottom: 3rem;
+            /* Mayor separación antes del footer */
+        }
+
+        #ctaSection .section-title {
+            color: #FFFFFF;
+            border-bottom: 2px solid #FFFFFF;
+        }
+
+        #ctaSection .content p {
+            color: #FFFFFF;
+            font-size: 1.1rem;
+        }
+
+        #ctaSection .button.is-cta {
+            background-color: #FFFFFF;
+            color: #FF6600;
+            /* Naranja para texto */
+            font-family: 'Bebas Neue', cursive;
+            font-size: 1.5rem;
+            letter-spacing: 0.5px;
+            padding: 0.8rem 2rem;
+            border: 2px solid #FFFFFF;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        #ctaSection .button.is-cta:hover {
+            background-color: transparent;
+            color: #FFFFFF;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        #esopRolesSuggestion {
+            background-color: #27282E;
+            /* Fondo más oscuro para esta subsección */
+            padding: 1rem;
+            border-radius: 6px;
+            margin-top: 1rem;
+            border: 1px solid #7F756F;
+        }
+
+        #esopRolesSuggestion h5 {
+            color: #FFA600;
+            font-size: 1.2em;
+            margin-bottom: 0.5em;
+        }
+
+        #esopRolesSuggestion ul {
+            list-style-type: disc;
+            padding-left: 20px;
+            font-size: 0.9em;
+            color: #e0e0e0;
+        }
+
+        #esopRolesSuggestion li {
+            margin-bottom: 0.3em;
+        }
+
+        .message.is-link .message-header {
+            /* Resultados individuales */
+            background-color: #FF6600;
+            color: #FFFFFF;
+        }
+
+        .message.is-link .message-body {
+            background-color: #33343a;
+            /* Un poco más claro que el box */
+            border-color: #FF6600;
+            color: #FFFFFF;
+        }
+
+        .message.is-info .message-header {
+            /* ESOP en resultados */
+            background-color: #FFA600;
+            color: #27282E;
+        }
+
+        .message.is-info .message-body {
+            /* Cuerpo del mensaje ESOP */
+            background-color: #33343a;
+            border-color: #FFA600;
+            color: #FFFFFF;
+        }
+
+        .notification.is-warning.is-light {
+            /* Nota importante */
+            background-color: rgba(255, 38, 0, 0.1);
+            /* Rojo muy transparente */
+            color: #FF2600;
+            /* Texto Rojo */
+            border-left-color: #FF2600;
+            /* Rojo para el borde */
+        }
+
+        .notification.is-warning.is-light .title,
+        .notification.is-warning.is-light p {
+            color: #FF2600;
+            /* Texto Rojo */
+        }
+
+        /* Ajuste para la sección de ponderación */
+        #weightsContainer .field.is-horizontal {
+            display: flex;
+            align-items: center;
+        }
+
+        #weightsContainer .field-label {
+            flex-grow: 1;
+            /* La etiqueta toma el espacio necesario */
+            margin-right: 1rem;
+            /* Espacio entre etiqueta e input */
+            text-align: left;
+        }
+
+        #weightsContainer .field-label .label {
+            margin-bottom: 0;
+            /* Quitar margen inferior de la etiqueta Bulma */
+        }
+
+        #weightsContainer .field-body {
+            flex-grow: 0;
+            /* El input no crece */
+            flex-shrink: 0;
+            /* El input no se encoge */
+        }
+    </style>
+</head>
+
+<body>
+    <section class="hero is-small">
+        <div class="hero-body">
+            <div class="container has-text-centered">
+                <h1 class="title main-title">
+                    Calculadora de Equity para Fundadores
+                </h1>
+                <p class="subtitle is-4" style="color: #FFFFFF;">
+                    Estima la participación accionaria inicial y el ESOP según contribuciones, experiencia, industria y
+                    región, con un análisis detallado.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <div class="container mt-5">
+        <section id="contextSection" class="box mb-6">
+            <h2 class="section-title">1. Contexto de la Startup</h2>
+            <div class="columns">
+                <div class="column">
+                    <div class="field">
+                        <label class="label" for="continent">Continente de Operación:</label>
+                        <div class="control">
+                            <div class="select is-fullwidth">
+                                <select id="continent" name="continent"></select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="column">
+                    <div class="field">
+                        <label class="label" for="industry">Industria Principal:</label>
+                        <div class="control">
+                            <div class="select is-fullwidth">
+                                <select id="industry" name="industry"></select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="esopSuggestion" class="notification is-info mt-4 is-hidden">
+                <h4 class="title is-5" style="color: #FFA600;">Sugerencia de Pool de Opciones para Empleados (ESOP)
+                    Inicial:</h4>
+                <p id="esopSuggestionText"></p>
+                <p class="is-size-7 mt-2"><i>Nota: Este pool se reservará del 100% inicial. Los fundadores se repartirán
+                        el equity restante.</i></p>
+                <div id="esopRolesSuggestion" class="is-hidden">
+                    <h5 style="color: #FFA600;">Roles Clave y Equity Sugerido del ESOP para esta Industria:</h5>
+                    <ul id="esopRolesList"></ul>
+                </div>
+            </div>
+        </section>
+
+        <section id="contributionFactors" class="box mb-6">
+            <h2 class="section-title">2. Ponderación de Factores de Contribución (para Fundadores)</h2>
+            <p class="mb-4" style="color: #e0e0e0;">Define la importancia relativa (%) de cada factor para el reparto
+                entre fundadores. La suma total debe ser 100%.</p>
+            <div id="weightsContainer" class="mb-4"></div>
+            <div class="has-text-right">
+                <p class="is-size-5">Suma de Pesos: <span id="totalWeights" class="has-text-weight-bold">0%</span></p>
+            </div>
+        </section>
+
+        <section class="box mb-6">
+            <h2 class="section-title">3. Número de Fundadores</h2>
+            <div class="field is-horizontal">
+                <div class="field-label is-normal">
+                    <label class="label" for="numFounders">Cantidad:</label>
+                </div>
+                <div class="field-body">
+                    <div class="field">
+                        <div class="control">
+                            <input class="input is-small" type="number" id="numFounders" name="numFounders" min="1"
+                                max="10" value="2" style="width: 80px;">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="foundersDetailsSection" class="mb-6">
+            <h2 class="section-title">4. Detalles de los Fundadores</h2>
+            <div id="foundersContainer"></div>
+        </section>
+
+        <section class="has-text-centered my-6">
+            <button id="calculateButton" class="button is-primary">
+                Calcular Equity
+            </button>
+        </section>
+
+        <section id="resultsSection" class="box is-hidden mt-6">
+            <h2 class="section-title has-text-centered">Resultados del Reparto de Equity</h2>
+            <div id="equityChartContainer">
+                <canvas id="equityPieChart"></canvas>
+            </div>
+            <div id="resultsContainer" class="mb-5"></div>
+            <div id="summarySection" class="summary-section mt-5 content">
+                <h4 class="title is-4">Resumen Ejecutivo y Recomendaciones</h4>
+                <div id="executiveSummaryText"></div>
+            </div>
+            <div class="notification is-warning is-light mt-5">
+                <h4 class="title is-5">Nota Importante:</h4>
+                <p>Esta calculadora proporciona una estimación para facilitar la discusión. La división final de equity
+                    debe ser el resultado de una negociación detallada y un acuerdo mutuo, considerando todos los
+                    matices y el contexto específico de la startup. Es altamente recomendable formalizar cualquier
+                    acuerdo con asesoría legal.</p>
+            </div>
+        </section>
+
+        <section id="ctaSection" class="mt-6 is-hidden">
+            <h2 class="section-title">Únete a la Comunidad</h2>
+            <div class="content">
+                <p>¿Buscas conectar con otros emprendedores, compartir experiencias y acceder a recursos exclusivos?</p>
+                <p>Forma parte de la comunidad de fundadores y emprendedores de El Ecosistema Startup.</p>
+                <a href="https://comunidad.ecosistemastartup.com/" target="_blank" class="button is-cta mt-3">
+                    ¡Únete Gratis a la Comunidad!
+                </a>
+            </div>
+        </section>
+    </div>
+
+    <div id="warningModal" class="modal">
+        <div class="modal-background" onclick="closeModal('warningModal')"></div>
+        <div class="modal-card">
+            <header class="modal-card-head">
+                <p id="warningModalTitle" class="modal-card-title">Advertencia</p>
+                <button class="delete" aria-label="close" onclick="closeModal('warningModal')"></button>
+            </header>
+            <section id="warningModalBody" class="modal-card-body">
+                <p id="warningModalMessage"></p>
+            </section>
+            <footer class="modal-card-foot" style="justify-content: flex-end;">
+                <button class="button is-warning" onclick="closeModal('warningModal')">Entendido</button>
+            </footer>
+        </div>
+    </div>
+
+    <footer class="footer"
+        style="background-color: #1F2937; padding: 2rem 1.5rem 3rem; border-top: 1px solid #7F756F; margin-top: 3rem;">
+        <div class="content has-text-centered">
+            <p style="color: #FFFFFF;">
+                Calculadora de Equity para Fundadores por <a href="https://cristiantala.com/" target="_blank"
+                    class="footer-link">Cristian Tala Sánchez</a>, fundador de <a href="https://ecosistemastartup.com/"
+                    target="_blank" class="footer-link">Ecosistema Startup</a>.
+            </p>
+        </div>
+    </footer>
+
+    <script>
+        // --- Configuración de la Calculadora ---
+        const contributionFactors = [
+            { id: 'idea', name: 'Idea Original / PI Crítica', defaultWeight: 15, description: "Innovación, patentabilidad, barreras de entrada generadas por la idea o PI." },
+            { id: 'capital', name: 'Capital Invertido Inicialmente', defaultWeight: 15, description: "Aportes financieros directos en etapas tempranas (no préstamos)." },
+            { id: 'dedication', name: 'Dedicación de Tiempo', defaultWeight: 30, description: "Compromiso full-time vs part-time, renuncias a otras oportunidades." },
+            { id: 'skills', name: 'Experiencia/Habilidades Clave', defaultWeight: 25, description: "Expertise técnico, de negocio, marketing, ventas, etc., crucial para el éxito." },
+            { id: 'leadership', name: 'Liderazgo / Rol de CEO', defaultWeight: 15, description: "Responsabilidad general, visión estratégica, gestión del equipo y representación externa." }
+        ];
+
+        const experienceLevels = [
+            { id: 'novice', name: 'Primerizo', multiplier: 1.0, description: "Menos de 2 años de experiencia relevante o primera vez fundando." },
+            { id: 'intermediate', name: 'Con Experiencia Parcial', multiplier: 1.1, description: "Experiencia previa en roles similares o en la industria (2-5 años), o segunda vez fundando con aprendizajes aplicables." },
+            { id: 'expert', name: 'Experto en Industria', multiplier: 1.25, description: "Más de 5 años de experiencia directa y relevante en la industria, con un historial de logros significativos." },
+            { id: 'serial', name: 'Emprendedor en Serie', multiplier: 1.5, description: "Ha fundado una o más empresas anteriormente, idealmente con alguna salida exitosa o experiencia escalando negocios." }
+        ];
+
+        const continents = [
+            { id: 'us_canada', name: 'EE.UU. / Canadá' },
+            { id: 'latam', name: 'Latinoamérica' },
+            { id: 'europe', name: 'Europa' },
+            { id: 'asia', name: 'Asia' },
+            { id: 'africa', name: 'África' },
+            { id: 'oceania', name: 'Oceanía (ANZ)' }
+        ];
+
+        const industries = [
+            { id: 'saas', name: 'Software como Servicio (SaaS)' },
+            { id: 'fintech', name: 'Fintech (Tecnología Financiera)' },
+            { id: 'healthtech', name: 'Healthtech (Tecnología de la Salud)' },
+            { id: 'biotech', name: 'Biotecnología' },
+            { id: 'ai_deeptech', name: 'IA / Deep Tech' },
+            { id: 'edtech', name: 'Edtech (Tecnología Educativa)' },
+            { id: 'ecommerce', name: 'E-commerce / Marketplace' },
+            { id: 'consumer_tech', name: 'Tecnología de Consumo (Apps, etc.)' },
+            { id: 'proptech', name: 'Proptech (Tecnología Inmobiliaria)' },
+            { id: 'insurtech', name: 'Insurtech (Tecnología de Seguros)' },
+            { id: 'other', name: 'Otra Industria' }
+        ];
+
+        const esopSuggestions = {
+            saas: {
+                us_canada: { min: 10, max: 15, note: "Común para etapa temprana, con potencial de crecimiento.", roles: [{ name: "Primer Ingeniero Clave", range: "0.5-1.5%" }, { name: "Primer Comercial/Ventas", range: "0.3-1%" }, { name: "VP de Producto/Ingeniería Temprano", range: "1-2%" }] },
+                europe: { min: 10, max: 15, note: "Alineándose con prácticas globales, aunque puede ser más conservador.", roles: [{ name: "Ingeniero Senior", range: "0.3-1%" }, { name: "Desarrollador de Negocio", range: "0.2-0.8%" }, { name: "Jefe de Marketing Temprano", range: "0.5-1.5%" }] },
+                latam: { min: 10, max: 15, note: "Creciente adopción para atraer talento técnico y de negocio.", roles: [{ name: "Desarrollador Full-Stack", range: "0.4-1.2%" }, { name: "Especialista en Growth Hacking", range: "0.3-1%" }, { name: "Líder Técnico", range: "1-2%" }] },
+                asia: { min: 10, max: 15, note: "Importante en mercados competitivos como India y SEA.", roles: [{ name: "Ingeniero de Software (Temprano)", range: "0.5-1.5%" }, { name: "Gerente de Producto", range: "0.5-1.2%" }, { name: "VP de Ventas (Asia)", range: "1-2.5%" }] },
+                africa: { min: 10, max: 15, note: "Para los primeros 10 empleados en África.", roles: [{ name: "Ingeniero Principal", range: "0.7-1.5%" }, { name: "Gerente de Operaciones", range: "0.5-1.2%" }, { name: "Jefe de Crecimiento", range: "1-2%" }] },
+                oceania: { min: 10, max: 15, note: "Prácticas similares a otros mercados desarrollados.", roles: [{ name: "Ingeniero de Software Senior", range: "0.5-1.3%" }, { name: "Ejecutivo de Cuentas Clave", range: "0.3-1%" }, { name: "Líder de Producto", range: "1-2%" }] },
+                default: { min: 10, max: 15, note: "General para SaaS en etapa temprana.", roles: [{ name: "Talento Técnico Clave", range: "0.5-1.5%" }, { name: "Talento Comercial Clave", range: "0.3-1%" }] }
+            },
+            fintech: {
+                us_canada: { min: 10, max: 15, note: "Rango común en etapa semilla, 10-12% es un punto medio.", roles: [{ name: "Ingeniero Blockchain/Seguridad", range: "0.7-2%" }, { name: "Analista de Cumplimiento (Compliance)", range: "0.3-1%" }, { name: "VP de Finanzas/Operaciones", range: "1-3%" }] },
+                default: { min: 10, max: 15, note: "10-12% es un punto medio común en etapa semilla.", roles: [{ name: "Ingeniero con exp. financiera", range: "0.5-1.5%" }, { name: "Experto en Regulación", range: "0.4-1.2%" }] }
+            },
+            healthtech: {
+                default: { min: 10, max: 15, note: "Recomendado para atraer talento especializado.", roles: [{ name: "Científico de Datos (Salud)", range: "0.6-1.8%" }, { name: "Especialista en Regulación Médica", range: "0.5-1.5%" }, { name: "VP de Desarrollo Clínico", range: "1.5-3%" }] }
+            },
+            biotech: {
+                default: { min: 15, max: 20, note: "Rango amplio debido a alta especialización y ciclos largos de I+D.", roles: [{ name: "Investigador Principal (PhD)", range: "1-2.5%" }, { name: "Técnico de Laboratorio Especializado", range: "0.3-1%" }, { name: "Director Científico (CSO)", range: "2-5%" }] }
+            },
+            ai_deeptech: {
+                default: { min: 15, max: 20, note: "Alta competencia por talento especializado (PhDs).", roles: [{ name: "Ingeniero de Machine Learning (PhD)", range: "1-3%" }, { name: "Investigador en IA", range: "1-2.5%" }, { name: "VP de Ingeniería (IA)", range: "1.5-4%" }] }
+            },
+            edtech: {
+                default: { min: 10, max: 15, note: "Mercado en crecimiento con fuerte inversión de VC.", roles: [{ name: "Diseñador Instruccional", range: "0.3-1%" }, { name: "Desarrollador de Contenido Educativo", range: "0.2-0.8%" }, { name: "Jefe de Producto Educativo", range: "0.8-1.8%" }] }
+            },
+            ecommerce: { default: { min: 10, max: 15, note: "Depende de la escala y la complejidad logística/tecnológica.", roles: [{ name: "Gerente de Logística/Operaciones", range: "0.5-1.5%" }, { name: "Especialista en Marketing Digital", range: "0.3-1%" }, { name: "Jefe de E-commerce", range: "1-2.5%" }] } },
+            consumer_tech: { default: { min: 10, max: 15, note: "Para apps y servicios directos al consumidor.", roles: [{ name: "Desarrollador Móvil (iOS/Android)", range: "0.5-1.5%" }, { name: "Diseñador UX/UI", range: "0.4-1.2%" }, { name: "Gerente de Comunidad", range: "0.2-0.8%" }] } },
+            proptech: { default: { min: 10, max: 15, note: "Innovación en el sector inmobiliario.", roles: [{ name: "Analista de Datos Inmobiliarios", range: "0.4-1.2%" }, { name: "Desarrollador de Plataformas Proptech", range: "0.5-1.5%" }, { name: "VP de Desarrollo de Negocio (Proptech)", range: "1-2.5%" }] } },
+            insurtech: { default: { min: 10, max: 15, note: "Digitalización de seguros.", roles: [{ name: "Actuario / Científico de Datos (Seguros)", range: "0.6-1.8%" }, { name: "Desarrollador Full-Stack (Insurtech)", range: "0.5-1.5%" }, { name: "Jefe de Producto (Insurtech)", range: "1-2.5%" }] } },
+            other: { default: { min: 10, max: 15, note: "Rango general, ajustar según la intensidad de capital y talento.", roles: [{ name: "Rol Técnico Clave", range: "0.5-1.5%" }, { name: "Rol Comercial/Operativo Clave", range: "0.3-1.2%" }] } },
+            default_esop: {
+                default: { min: 10, max: 20, note: "Rango global general para startups en etapa temprana.", roles: [{ name: "Primeros Ingenieros", range: "0.5-2%" }, { name: "Primeros Comerciales", range: "0.3-1.5%" }, { name: "Ejecutivos Tempranos (VP/Director)", range: "1-3%" }] }
+            }
+        };
+
+        // --- DOM Elements ---
+        const continentSelect = document.getElementById('continent');
+        const industrySelect = document.getElementById('industry');
+        const esopSuggestionDiv = document.getElementById('esopSuggestion');
+        const esopSuggestionTextEl = document.getElementById('esopSuggestionText');
+        const esopRolesSuggestionDiv = document.getElementById('esopRolesSuggestion');
+        const esopRolesListEl = document.getElementById('esopRolesList');
+        const weightsContainer = document.getElementById('weightsContainer');
+        const totalWeightsEl = document.getElementById('totalWeights');
+        const numFoundersInput = document.getElementById('numFounders');
+        const foundersContainer = document.getElementById('foundersContainer');
+        const calculateButton = document.getElementById('calculateButton');
+        const resultsSection = document.getElementById('resultsSection');
+        const resultsContainer = document.getElementById('resultsContainer');
+        const ctaSection = document.getElementById('ctaSection');
+        const executiveSummaryTextEl = document.getElementById('executiveSummaryText');
+        let equityPieChartInstance = null;
+        let founderInputsData = [];
+
+        // --- Modal Functions ---
+        function showModal(modalId, title, message) {
+            document.getElementById(modalId).classList.add('is-active');
+            document.getElementById(modalId + 'Title').textContent = title;
+            document.getElementById(modalId + 'Message').textContent = message;
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('is-active');
+        }
+
+        // --- Initialize Context Selectors ---
+        function initializeContextSelectors() {
+            continents.forEach(continent => {
+                const option = document.createElement('option');
+                option.value = continent.id;
+                option.textContent = continent.name;
+                continentSelect.appendChild(option);
+            });
+            industries.forEach(industry => {
+                const option = document.createElement('option');
+                option.value = industry.id;
+                option.textContent = industry.name;
+                industrySelect.appendChild(option);
+            });
+            continentSelect.addEventListener('change', updateEsopSuggestion);
+            industrySelect.addEventListener('change', updateEsopSuggestion);
+        }
+
+        // --- Update ESOP Suggestion ---
+        function updateEsopSuggestion() {
+            const selectedContinentId = continentSelect.value;
+            const selectedIndustryId = industrySelect.value;
+
+            esopRolesListEl.innerHTML = '';
+            esopRolesSuggestionDiv.classList.add('is-hidden');
+
+            if (!selectedContinentId || !selectedIndustryId) {
+                esopSuggestionDiv.classList.add('is-hidden');
+                return;
+            }
+
+            const industryData = esopSuggestions?.[selectedIndustryId] || esopSuggestions?.default_esop;
+            const suggestion = industryData?.[selectedContinentId] || industryData?.default || esopSuggestions?.default_esop?.default;
+
+            const industryName = industries.find(i => i.id === selectedIndustryId)?.name || "la industria seleccionada";
+            const continentName = continents.find(c => c.id === selectedContinentId)?.name || "el continente seleccionado";
+
+            if (suggestion) {
+                const esopPercentage = ((suggestion.min + suggestion.max) / 2).toFixed(1);
+                esopSuggestionTextEl.innerHTML = `Para <strong>${industryName}</strong> en <strong>${continentName}</strong>, un ESOP inicial común podría ser alrededor del <strong>${esopPercentage}%</strong> (rango ${suggestion.min}-${suggestion.max}%) del capital totalmente diluido. ${suggestion.note || ''}`;
+                esopSuggestionDiv.classList.remove('is-hidden');
+
+                if (suggestion.roles && suggestion.roles.length > 0) {
+                    suggestion.roles.forEach(role => {
+                        const listItem = document.createElement('li');
+                        listItem.innerHTML = `<strong>${role.name}:</strong> ${role.range}`;
+                        esopRolesListEl.appendChild(listItem);
+                    });
+                    esopRolesSuggestionDiv.classList.remove('is-hidden');
+                }
+            } else {
+                esopSuggestionDiv.classList.add('is-hidden');
+            }
+        }
+
+        // --- Initialize Contribution Factor Weights ---
+        function initializeWeights() {
+            weightsContainer.innerHTML = '';
+            contributionFactors.forEach(factor => {
+                const field = document.createElement('div');
+                field.classList.add('field', 'is-horizontal');
+
+                const fieldLabel = document.createElement('div');
+                fieldLabel.classList.add('field-label', 'is-normal');
+                const labelContainer = document.createElement('div');
+                labelContainer.classList.add('contribution-tooltip');
+                const label = document.createElement('label');
+                label.htmlFor = `weight-${factor.id}`;
+                label.textContent = factor.name;
+                label.classList.add('label');
+                const tooltip = document.createElement('span');
+                tooltip.classList.add('tooltiptext');
+                tooltip.textContent = factor.description;
+                labelContainer.appendChild(label);
+                labelContainer.appendChild(tooltip);
+                fieldLabel.appendChild(labelContainer);
+
+                const fieldBody = document.createElement('div');
+                fieldBody.classList.add('field-body');
+                const innerField = document.createElement('div');
+                innerField.classList.add('field');
+                const control = document.createElement('div');
+                control.classList.add('control');
+                const input = document.createElement('input');
+                input.type = 'number';
+                input.id = `weight-${factor.id}`;
+                input.name = `weight-${factor.id}`;
+                input.min = '0';
+                input.max = '100';
+                input.value = factor.defaultWeight;
+                input.classList.add('input', 'is-small', 'has-text-centered');
+                input.style.width = '80px';
+                input.addEventListener('input', updateTotalWeights);
+                control.appendChild(input);
+                innerField.appendChild(control);
+                fieldBody.appendChild(innerField);
+
+                field.appendChild(fieldLabel);
+                field.appendChild(fieldBody);
+                weightsContainer.appendChild(field);
+            });
+            updateTotalWeights();
+        }
+
+
+        function updateTotalWeights() {
+            let total = 0;
+            contributionFactors.forEach(factor => {
+                const weightInput = document.getElementById(`weight-${factor.id}`);
+                if (weightInput) {
+                    total += parseFloat(weightInput.value) || 0;
+                }
+            });
+            totalWeightsEl.textContent = `${total.toFixed(0)}%`;
+            if (total !== 100) {
+                totalWeightsEl.classList.remove('has-text-success');
+                totalWeightsEl.classList.add('has-text-warning');
+                totalWeightsEl.style.color = '#FF2600'; // Rojo para error
+            } else {
+                totalWeightsEl.classList.remove('has-text-warning');
+                totalWeightsEl.classList.add('has-text-success');
+                totalWeightsEl.style.color = '#FFA600'; // Naranja claro para éxito
+            }
+        }
+
+        // --- Save and Restore Founder Data ---
+        function saveFounderData() {
+            const currentNumFounders = foundersContainer.children.length;
+            founderInputsData = [];
+            for (let i = 0; i < currentNumFounders; i++) {
+                const founderCard = foundersContainer.children[i];
+                if (!founderCard) continue;
+
+                const founderData = {
+                    name: founderCard.querySelector(`#founderName-${i}`)?.value || '',
+                    experience: founderCard.querySelector(`#founderExperience-${i}`)?.value || experienceLevels[0].id,
+                    scores: {}
+                };
+                contributionFactors.forEach(factor => {
+                    founderData.scores[factor.id] = founderCard.querySelector(`#factor-${factor.id}-${i}`)?.value || '5';
+                });
+                founderInputsData.push(founderData);
+            }
+        }
+
+        function createFounderCard(founderIndex, data = null) {
+            const card = document.createElement('div');
+            card.classList.add('founder-card', 'mb-5');
+
+            let factorInputsHTML = '';
+            contributionFactors.forEach(factor => {
+                const scoreValue = data?.scores?.[factor.id] || '5';
+                factorInputsHTML += `
+                    <div class="column is-one-third-tablet is-half-mobile">
+                        <div class="field">
+                             <div class="contribution-tooltip">
+                                <label for="factor-${factor.id}-${founderIndex}" class="label is-small">${factor.name}:</label>
+                                <span class="tooltiptext">${factor.description}</span>
+                            </div>
+                            <div class="control">
+                                <input type="number" id="factor-${factor.id}-${founderIndex}" name="factor-${factor.id}-${founderIndex}" min="0" max="10" value="${scoreValue}" class="input is-small">
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            const founderNameValue = data?.name || '';
+            const founderExperienceValue = data?.experience || experienceLevels[0].id;
+
+            card.innerHTML = `
+                <h3 class="title is-4 founder-card-title">Fundador ${founderIndex + 1}</h3>
+                <div class="columns is-multiline">
+                    <div class="column is-half">
+                        <div class="field">
+                            <label for="founderName-${founderIndex}" class="label">Nombre (Opcional):</label>
+                            <div class="control">
+                                <input type="text" id="founderName-${founderIndex}" name="founderName-${founderIndex}" class="input" value="${founderNameValue}">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="column is-half">
+                        <div class="field">
+                            <label for="founderExperience-${founderIndex}" class="label">Nivel de Experiencia:</label>
+                            <div class="control">
+                                <div class="select is-fullwidth">
+                                    <select id="founderExperience-${founderIndex}" name="founderExperience-${founderIndex}">
+                                        ${experienceLevels.map(level => `<option value="${level.id}" title="${level.description}" ${level.id === founderExperienceValue ? 'selected' : ''}>${level.name}</option>`).join('')}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <p class="label mt-4 mb-2">Puntuación de Contribución (0-10 para cada factor):</p>
+                <div class="columns is-multiline is-mobile">
+                    ${factorInputsHTML}
+                </div>
+            `;
+            return card;
+        }
+
+        function updateFoundersSection() {
+            saveFounderData();
+            foundersContainer.innerHTML = '';
+            const numFounders = parseInt(numFoundersInput.value) || 0;
+            for (let i = 0; i < numFounders; i++) {
+                foundersContainer.appendChild(createFounderCard(i, founderInputsData[i] || null));
+            }
+        }
+
+        function validateInputs() {
+            let totalWeight = 0;
+            contributionFactors.forEach(factor => {
+                const weightInput = document.getElementById(`weight-${factor.id}`);
+                totalWeight += parseFloat(weightInput.value) || 0;
+            });
+            if (Math.abs(totalWeight - 100) > 0.01) {
+                showModal('warningModal', 'Advertencia en Ponderaciones', `La suma de los pesos de los factores de contribución (${totalWeight.toFixed(0)}%) no es 100%. Por favor, ajústalos.`);
+                return false;
+            }
+
+            const numFounders = parseInt(numFoundersInput.value) || 0;
+            if (numFounders <= 0) {
+                showModal('warningModal', 'Error en Fundadores', 'Debe haber al menos un fundador.');
+                return false;
+            }
+
+            for (let i = 0; i < numFounders; i++) {
+                for (const factor of contributionFactors) {
+                    const scoreInput = document.getElementById(`factor-${factor.id}-${i}`);
+                    if (!scoreInput) continue;
+                    const score = parseFloat(scoreInput.value);
+                    if (isNaN(score) || score < 0 || score > 10) {
+                        showModal('warningModal', 'Error en Puntuaciones', `La puntuación para '${factor.name}' del Fundador ${i + 1} debe estar entre 0 y 10.`);
+                        return false;
+                    }
+                }
+            }
+            if (!continentSelect.value || !industrySelect.value) {
+                showModal('warningModal', 'Contexto Incompleto', 'Por favor, selecciona un continente y una industria para continuar.');
+                return false;
+            }
+            return true;
+        }
+
+        function calculateEquity() {
+            if (!validateInputs()) {
+                resultsSection.classList.add('is-hidden');
+                ctaSection.classList.add('is-hidden');
+                return;
+            }
+
+            const selectedContinentId = continentSelect.value;
+            const selectedIndustryId = industrySelect.value;
+            const industryData = esopSuggestions?.[selectedIndustryId] || esopSuggestions?.default_esop;
+            const esopSuggestionData = industryData?.[selectedContinentId] || industryData?.default || esopSuggestions?.default_esop?.default;
+            const esopPercentage = esopSuggestionData ? ((esopSuggestionData.min + esopSuggestionData.max) / 2) : 10;
+            const equityForFounders = 100 - esopPercentage;
+
+            const numFounders = parseInt(numFoundersInput.value);
+            const founderDataArray = [];
+            let totalWeightedScoreSum = 0;
+
+            const factorWeights = {};
+            contributionFactors.forEach(factor => {
+                factorWeights[factor.id] = parseFloat(document.getElementById(`weight-${factor.id}`).value) / 100;
+            });
+
+            for (let i = 0; i < numFounders; i++) {
+                const name = document.getElementById(`founderName-${i}`).value || `Fundador ${i + 1}`;
+                const experienceId = document.getElementById(`founderExperience-${i}`).value;
+                const experience = experienceLevels.find(level => level.id === experienceId);
+
+                let individualWeightedScore = 0;
+                const individualFactorScores = {};
+                contributionFactors.forEach(factor => {
+                    const score = parseFloat(document.getElementById(`factor-${factor.id}-${i}`).value);
+                    individualFactorScores[factor.id] = score;
+                    individualWeightedScore += score * factorWeights[factor.id];
+                });
+
+                const finalScore = individualWeightedScore * (experience?.multiplier || 1);
+
+                founderDataArray.push({
+                    name,
+                    score: finalScore,
+                    rawScore: individualWeightedScore,
+                    experienceMultiplier: experience?.multiplier || 1,
+                    experienceName: experience?.name || 'N/A',
+                    individualFactorScores
+                });
+                totalWeightedScoreSum += finalScore;
+            }
+
+            resultsContainer.innerHTML = '';
+            const chartLabels = [];
+            const chartData = [];
+            const chartColors = ['#FF6600', '#FFA600', '#FF2600', '#7F756F', '#FFFFFF', '#e0e0e0'].slice(0, numFounders + 1); // Adjusted colors
+
+            if (totalWeightedScoreSum === 0 && numFounders > 0) {
+                founderDataArray.forEach((founder, index) => {
+                    const equityOfFounderPool = (1 / numFounders) * equityForFounders;
+                    displayResult(founder, equityOfFounderPool, factorWeights);
+                    chartLabels.push(founder.name);
+                    chartData.push(equityOfFounderPool);
+                });
+                showModal('warningModal', 'Puntuaciones Nulas', 'Todas las puntuaciones ponderadas de los fundadores son cero. Se ha aplicado un reparto equitativo del equity disponible para fundadores.');
+            } else if (numFounders > 0) {
+                founderDataArray.forEach((founder, index) => {
+                    const equityOfFounderPool = (founder.score / totalWeightedScoreSum) * equityForFounders;
+                    displayResult(founder, equityOfFounderPool, factorWeights);
+                    chartLabels.push(founder.name);
+                    chartData.push(equityOfFounderPool);
+                });
+            }
+
+            const esopDisplay = document.createElement('div');
+            esopDisplay.classList.add('message', 'is-info', 'mb-4');
+            const esopHeader = document.createElement('div');
+            esopHeader.classList.add('message-header');
+            esopHeader.innerHTML = `<p>Pool de Opciones para Empleados (ESOP)</p><p class="has-text-weight-bold">${esopPercentage.toFixed(2)}%</p>`;
+            esopDisplay.appendChild(esopHeader);
+            resultsContainer.appendChild(esopDisplay);
+
+            chartLabels.push('ESOP');
+            chartData.push(esopPercentage);
+
+            renderPieChart(chartLabels, chartData, chartColors);
+            generateExecutiveSummary(founderDataArray, esopPercentage, selectedIndustryId, selectedContinentId, numFounders);
+
+            resultsSection.classList.remove('is-hidden');
+            ctaSection.classList.remove('is-hidden');
+            resultsSection.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function renderPieChart(labels, data, colors) {
+            const ctx = document.getElementById('equityPieChart').getContext('2d');
+            if (equityPieChartInstance) {
+                equityPieChartInstance.destroy();
+            }
+            equityPieChartInstance = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Distribución de Equity',
+                        data: data,
+                        backgroundColor: colors,
+                        borderColor: '#3a3b40',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                color: '#FFFFFF',
+                                font: {
+                                    family: "'Poppins', sans-serif"
+                                }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function (context) {
+                                    let label = context.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed !== null) {
+                                        label += context.parsed.toFixed(2) + '%';
+                                    }
+                                    return label;
+                                },
+                            },
+                            bodyFont: {
+                                family: "'Poppins', sans-serif"
+                            },
+                            titleFont: {
+                                family: "'Poppins', sans-serif"
+                            },
+                            backgroundColor: '#111827',
+                            titleColor: '#FFA600',
+                            bodyColor: '#FFFFFF'
+                        }
+                    }
+                }
+            });
+        }
+
+        function displayResult(founder, percentage, factorWeights) {
+            const resultDiv = document.createElement('div');
+            resultDiv.classList.add('message', 'is-link', 'mb-4');
+
+            const messageHeader = document.createElement('div');
+            messageHeader.classList.add('message-header');
+            messageHeader.innerHTML = `<p>${founder.name}</p><p class="has-text-weight-bold">${percentage.toFixed(2)}%</p>`;
+
+            const messageBody = document.createElement('div');
+            messageBody.classList.add('message-body', 'is-size-7', 'result-explanation');
+
+            let explanationHTML = `<h5>Desglose del Cálculo para ${founder.name}:</h5>
+                <ul>
+                    <li>Puntaje Base (Contribuciones Ponderadas): ${founder.rawScore.toFixed(2)}</li>
+                    <li>Nivel de Experiencia: ${founder.experienceName} (Multiplicador: x${founder.experienceMultiplier.toFixed(1)})</li>
+                    <li>Puntaje Final Ajustado (para reparto entre fundadores): ${founder.score.toFixed(2)}</li>
+                </ul>`;
+
+            explanationHTML += `<h5>Factores de Contribución Clave (Puntuación x Peso):</h5><ul>`;
+            const sortedFactors = contributionFactors
+                .map(cf => ({ ...cf, weightedScore: (founder.individualFactorScores[cf.id] || 0) * (factorWeights[cf.id] || 0) }))
+                .sort((a, b) => b.weightedScore - a.weightedScore);
+
+            sortedFactors.slice(0, 3).forEach(cf => {
+                if (cf.weightedScore > 0) {
+                    explanationHTML += `<li>${cf.name}: ${founder.individualFactorScores[cf.id]} x ${(factorWeights[cf.id] * 100).toFixed(0)}% = ${cf.weightedScore.toFixed(2)} pts.</li>`;
+                }
+            });
+            explanationHTML += `</ul>`;
+
+
+            const selectedIndustryId = industrySelect.value;
+            const selectedContinentId = continentSelect.value;
+            const industryName = industries.find(i => i.id === selectedIndustryId)?.name || "esta industria";
+            const continentName = continents.find(c => c.id === selectedContinentId)?.name || "esta región";
+
+            explanationHTML += `<h5>Contexto y Raciocinio (Individual):</h5>`;
+            explanationHTML += `<p>Las prácticas en <strong>${industryName}</strong> en <strong>${continentName}</strong> y tu nivel de experiencia (${founder.experienceName}) influyen en esta estimación. El ESOP reservado también refleja las necesidades de talento típicas.</p>`;
+            messageBody.innerHTML = explanationHTML;
+
+            resultDiv.appendChild(messageHeader);
+            resultDiv.appendChild(messageBody);
+            resultsContainer.appendChild(resultDiv);
+        }
+
+        function generateExecutiveSummary(founderDataArray, esopPercentage, industryId, continentId, numFounders) {
+            const industryName = industries.find(i => i.id === industryId)?.name || "la industria seleccionada";
+            const continentName = continents.find(c => c.id === continentId)?.name || "el continente seleccionado";
+            let summaryHTML = `<h5>Composición Sugerida de la Sociedad:</h5>
+                <ul>
+                    <li><strong>Fundadores (${numFounders}):</strong> Se reparten el <strong>${(100 - esopPercentage).toFixed(2)}%</strong> del equity total, basado en sus contribuciones ponderadas y experiencia.</li>
+                    <li><strong>ESOP (Pool de Opciones para Empleados):</strong> Se ha reservado un <strong>${esopPercentage.toFixed(2)}%</strong>. Este es un rango típico para <strong>${industryName}</strong> en <strong>${continentName}</strong>, crucial para atraer y retener talento clave.</li>
+                </ul>`;
+
+            const industryEsopData = esopSuggestions?.[industryId] || esopSuggestions?.default_esop;
+            const esopRolesData = industryEsopData?.[continentId]?.roles || industryEsopData?.default?.roles || esopSuggestions.default_esop.default.roles;
+
+            if (esopRolesData && esopRolesData.length > 0) {
+                summaryHTML += `<h5 class="mt-3">Sugerencia de Roles para el ESOP en ${industryName}:</h5><ul>`;
+                esopRolesData.forEach(role => {
+                    summaryHTML += `<li><strong>${role.name}:</strong> Rango típico de ${role.range} del ESOP total.</li>`;
+                });
+                summaryHTML += `</ul><p class="is-size-7"><i>Estos son rangos generales del ESOP total, no del equity total de la compañía. La asignación específica dependerá de la criticidad del rol y la etapa de contratación.</i></p>`;
+            }
+
+
+            summaryHTML += `<h5 class="mt-3">Recomendaciones Clave para la Estructura Inicial:</h5>
+                <ul>
+                    <li><strong>Acuerdo de Fundadores Detallado:</strong> Es vital formalizar este reparto, los roles, responsabilidades, la toma de decisiones y las cláusulas de salida en un acuerdo de fundadores robusto.</li>
+                    <li><strong>Vesting para Todos:</strong> Implementen un calendario de vesting (ej. 4 años con 1 año de cliff) para todas las acciones de fundadores y futuras concesiones del ESOP.</li>
+                    <li><strong>Uso Estratégico del ESOP:</strong> Planifiquen cuidadosamente la asignación de opciones del ESOP. Consideren los roles críticos para <strong>${industryName}</strong> y las expectativas de talento en <strong>${continentName}</strong>.</li>
+                    <li><strong>Propiedad Intelectual (PI):</strong> Aseguren que toda la PI relevante sea transferida formalmente a la empresa.</li>
+                    <li><strong>Asesoría Legal y Fiscal:</strong> Dada la complejidad, es <strong>altamente recomendable</strong> consultar con abogados y asesores fiscales especializados en startups en <strong>${continentName}</strong>.</li>
+                </ul>`;
+
+            if (numFounders > 1) {
+                summaryHTML += `<p class="mt-3">Con ${numFounders} fundadores, es crucial tener mecanismos claros para la resolución de disputas y la toma de decisiones estratégicas.</p>`;
+            } else {
+                summaryHTML += `<p class="mt-3">Como fundador único (o con un ESOP significativo), considera cómo la estructura de equity puede ayudarte a atraer cofundadores o talento ejecutivo clave en el futuro.</p>`;
+            }
+            executiveSummaryTextEl.innerHTML = summaryHTML;
+        }
+
+        // --- Event Listeners ---
+        numFoundersInput.addEventListener('input', updateFoundersSection);
+        calculateButton.addEventListener('click', calculateEquity);
+
+        // --- Initial Setup ---
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeContextSelectors();
+            initializeWeights();
+            updateFoundersSection();
+            updateEsopSuggestion();
+        });
+    </script>
+</body>
+
+</html>
